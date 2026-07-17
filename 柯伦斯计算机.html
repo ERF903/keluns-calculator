@@ -1,0 +1,914 @@
+<!--
+  Copyright (c) 2026 谌伟涛
+  保留所有权利 (All Rights Reserved)。
+  未经明确授权，禁止复制、修改、分发或用于商业用途。
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>柯伦斯装饰贴膜 · 智能算料机</title>
+    <style>
+        :root {
+            --primary: #4f6ef7;
+            --primary-dark: #3b54d4;
+            --bg: #f5f7fe;
+            --card-bg: #ffffff;
+            --text: #2d3748;
+            --text-light: #718096;
+            --border: #e2e8f0;
+            --shadow: 0 4px 24px rgba(0,0,0,0.06);
+            --radius: 20px;
+            --btn-radius: 12px;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);padding:24px;color:var(--text);}
+        .container{max-width:1300px;margin:0 auto;}
+        h1{
+            text-align:center;
+            font-weight:700;
+            font-size:2rem;
+            margin-bottom:20px;
+            color:#1a202c;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:12px;
+        }
+        .logo-badge {
+            display:inline-block;
+            width:52px;
+            height:52px;
+            background:linear-gradient(135deg, #4f6ef7, #6b8cff);
+            border-radius:50%;
+            color:#fff;
+            font-weight:700;
+            font-size:26px;
+            line-height:52px;
+            text-align:center;
+            box-shadow:0 4px 14px rgba(79,110,247,0.35);
+            flex-shrink:0;
+            user-select:none;
+        }
+        .card{background:var(--card-bg);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);margin-bottom:24px;border:1px solid var(--border);}
+        .row{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:18px;align-items:flex-end;}
+        .col{flex:1;min-width:160px;}
+        label{display:block;font-weight:600;margin-bottom:6px;font-size:14px;color:var(--text);}
+        input,select,textarea{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:var(--btn-radius);font-size:15px;transition:0.2s;background:#fff;font-family:inherit;}
+        input:focus,select:focus,textarea:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 3px rgba(79,110,247,0.15);}
+        textarea{resize:vertical;min-height:80px;font-family:monospace;font-size:14px;}
+        .btn{background:var(--primary);color:#fff;border:none;padding:12px 24px;border-radius:var(--btn-radius);font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;display:inline-flex;align-items:center;gap:6px;}
+        .btn:hover{background:var(--primary-dark);transform:translateY(-1px);}
+        .btn-secondary{background:#edf2f7;color:#4a5568;border:1px solid #cbd5e0;}
+        .btn-secondary:hover{background:#e2e8f0;}
+        .btn-danger{background:#fc8181;color:#fff;}
+        .btn-danger:hover{background:#f56565;}
+        .rect-list{margin:15px 0;display:flex;flex-direction:column;gap:10px;}
+        .rect-item{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 15px;background:#f7fafc;border-radius:12px;border:1px solid #e2e8f0;}
+        .rect-item input{width:100px;padding:10px;}
+        .remove-btn{background:#fff;color:#e53e3e;border:1px solid #fed7d7;border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:600;transition:0.2s;}
+        .remove-btn:hover{background:#fff5f5;border-color:#fc8181;}
+        .result-box{background:#f7fafc;padding:24px;border-radius:16px;margin:20px 0;white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.7;max-height:400px;overflow-y:auto;border:1px solid #e2e8f0;}
+        .canvas-wrapper{position:relative;margin:20px 0;display:flex;flex-direction:column;align-items:flex-start;}
+        .zoom-control{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:14px;}
+        .zoom-control input[type=range]{width:150px;}
+        canvas{border:1px solid #e2e8f0;border-radius:16px;display:block;max-width:100%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+        .summary-bar{display:flex;gap:20px;flex-wrap:wrap;margin:20px 0;padding:20px;background:linear-gradient(135deg,#4f6ef7,#6b8cff);border-radius:16px;color:#fff;box-shadow:0 8px 20px rgba(79,110,247,0.3);}
+        .summary-item{text-align:center;flex:1;min-width:100px;}
+        .summary-item .num{font-size:2rem;font-weight:700;line-height:1.2;}
+        .summary-item .label{font-size:0.85rem;opacity:0.9;}
+        .hint{font-size:13px;color:var(--text-light);margin-top:5px;}
+        .feedback{font-size:13px;padding:8px 12px;border-radius:8px;margin-top:8px;display:inline-block;}
+        .feedback.success{background:#c6f6d5;color:#22543d;}
+        .feedback.warning{background:#fefcbf;color:#744210;}
+        .tooltip{position:absolute;background:#2d3748;color:#fff;padding:6px 10px;border-radius:6px;font-size:12px;pointer-events:none;z-index:10;white-space:nowrap;opacity:0;transition:opacity 0.15s;}
+        .footer-link {
+            text-align: center;
+            margin-top: 30px;
+            padding: 16px;
+            background: #f7fafc;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            font-size: 14px;
+        }
+        .footer-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .footer-link a:hover {
+            text-decoration: underline;
+        }
+        .footer-contact {
+            margin-top: 10px;
+            font-weight: 600;
+            color: var(--primary-dark);
+            font-size: 16px;
+        }
+        /* 新增免费免责声明样式 */
+        .free-disclaimer {
+            text-align: center;
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: #e6fffa;
+            border-radius: 12px;
+            border: 1px solid #b2f5ea;
+            font-size: 14px;
+            color: #234e52;
+            line-height: 1.6;
+        }
+        .free-disclaimer strong {
+            color: #2b6cb0;
+        }
+
+        /* ===== 反馈悬浮按钮 & 模态框（原有，未改动） ===== */
+        .feedback-fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4f6ef7, #6b8cff);
+            color: #fff;
+            font-size: 28px;
+            border: none;
+            box-shadow: 0 4px 20px rgba(79,110,247,0.5);
+            cursor: pointer;
+            transition: 0.2s;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .feedback-fab:hover {
+            transform: scale(1.08);
+        }
+        .feedback-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .feedback-overlay.active {
+            display: flex;
+        }
+        .feedback-modal {
+            background: #fff;
+            border-radius: 24px;
+            padding: 32px 28px;
+            max-width: 480px;
+            width: 92%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            animation: fadeUp 0.25s ease;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .feedback-modal h3 {
+            margin-bottom: 16px;
+            font-size: 1.4rem;
+        }
+        .feedback-modal label {
+            margin-top: 12px;
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .feedback-modal textarea,
+        .feedback-modal input {
+            margin-top: 4px;
+            width: 100%;
+        }
+        .feedback-modal .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .feedback-modal .btn-group .btn {
+            flex: 1;
+            justify-content: center;
+        }
+        .feedback-modal .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #a0aec0;
+            transition: 0.2s;
+        }
+        .feedback-modal .close-btn:hover {
+            color: #2d3748;
+        }
+        .feedback-toast {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: #276749;
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            font-weight: 500;
+            z-index: 3000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: 0.3s;
+            pointer-events: none;
+        }
+        .feedback-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        @media (max-width:600px){
+            .feedback-fab { width: 52px; height: 52px; font-size: 24px; bottom: 20px; right: 20px; }
+            .feedback-modal { padding: 24px 18px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>
+        <span class="logo-badge">柯</span>
+        柯伦斯装饰贴膜 · 智能算料机
+    </h1>
+    
+    <!-- 基础设置 -->
+    <div class="card">
+        <h3 style="margin-bottom:15px;">⚙️ 卷材基础设置</h3>
+        <div class="row">
+            <div class="col">
+                <label>📏 幅宽 X (米)</label>
+                <input type="number" id="stripWidth" value="1.22" step="0.01" min="0.1">
+            </div>
+            <div class="col">
+                <label>🧵 材料类型</label>
+                <select id="materialType">
+                    <option value="pure">纯色（可旋转）</option>
+                    <option value="wood">木纹（禁止旋转）</option>
+                </select>
+            </div>
+            <div class="col">
+                <label>📦 单卷最长 (米)</label>
+                <input type="number" id="rollLength" value="50" step="1" min="1">
+            </div>
+        </div>
+    </div>
+
+    <!-- 工件录入 -->
+    <div class="card">
+        <h3 style="margin-bottom:10px;">📋 工件录入（宽 × 长 × 数量）</h3>
+        <div class="row" style="align-items:flex-start;">
+            <div class="col" style="flex:2;">
+                <label>✂️ 手动逐行添加</label>
+                <div id="rectList" class="rect-list"></div>
+                <button class="btn btn-secondary" onclick="addRect()" style="margin-top:8px;">➕ 新增一行</button>
+            </div>
+            <div class="col" style="flex:2;">
+                <label>📋 批量粘贴（宽 长 数量，每行一个）</label>
+                <textarea id="pasteInput" placeholder="例如：&#10;0.5 1.2 1&#10;0.6 2.5 1&#10;0.6 1.25 2"></textarea>
+                <button class="btn btn-secondary" onclick="pasteRects()" style="margin-top:8px;">📥 粘贴并添加</button>
+                <div id="pasteFeedback" class="hint" style="margin-top:8px;"></div>
+                <div class="hint">支持空格、逗号、制表符分隔。重复粘贴会追加。</div>
+            </div>
+        </div>
+        <div style="margin-top:15px;display:flex;gap:10px;">
+            <button class="btn" onclick="calculate()">🔍 开始排样计算</button>
+            <button class="btn btn-danger" onclick="clearAll()">🗑️ 清空全部</button>
+        </div>
+    </div>
+
+    <!-- 结果展示 -->
+    <div class="card" id="resultCard" style="display:none;">
+        <h3 style="margin-bottom:10px;">📊 排样结果</h3>
+        <div class="summary-bar" id="summaryBar"></div>
+        <div class="result-box"><div id="resultText"></div></div>
+        <h3 style="margin:15px 0 10px;">🖼️ 排样图（虚线分隔裁切段）</h3>
+        <div class="canvas-wrapper">
+            <div class="zoom-control">
+                <span>🔍 缩放：</span>
+                <input type="range" id="zoomSlider" min="0.5" max="3" step="0.1" value="1">
+                <span id="zoomValue">100%</span>
+            </div>
+            <div style="position:relative;">
+                <canvas id="layoutCanvas"></canvas>
+                <div class="tooltip" id="tooltip"></div>
+            </div>
+        </div>
+        <div class="hint">💡 鼠标悬停色块查看详情；点击色块高亮同源工件碎片。</div>
+    </div>
+
+    <!-- 页脚：抖音视频引导 & 合作联系 & 新增免费免责声明 -->
+    <div class="footer-link">
+        <div>💡 不会操作？去抖音搜索 <strong>“沪上小二”</strong> 看视频教程： 
+            <a href="https://v.douyin.com/s5Wt_NWuCSA/" target="_blank" rel="noopener noreferrer">
+                贴膜量尺寸技巧分享
+            </a>
+            <span style="color:var(--text-light);font-size:13px;display:block;margin-top:4px;">
+                复制链接 👆 打开抖音搜索，直接观看视频
+            </span>
+        </div>
+        <div class="footer-contact">🤝 合作联系：18689418927</div>
+        
+        <!-- 新增免费免责声明（其他内容均未改动） -->
+        <div class="free-disclaimer">
+            <strong>📢 本工具完全免费</strong> · 计算结果仅供参考，实际施工请以专业测量为准，使用本工具产生的一切后果由使用者自行承担。
+        </div>
+    </div>
+</div>
+
+<!-- ===== 反馈悬浮按钮 & 模态框（原有，未改动） ===== -->
+<button class="feedback-fab" id="feedbackFab" aria-label="问题反馈">💬</button>
+
+<div class="feedback-overlay" id="feedbackOverlay">
+    <div class="feedback-modal">
+        <button class="close-btn" id="feedbackClose">✕</button>
+        <h3>📬 问题反馈</h3>
+        <p style="color:var(--text-light);margin-bottom:16px;font-size:14px;">请告诉我们您遇到的问题或建议，我们会尽快处理。</p>
+        <label for="fbMessage">问题描述 <span style="color:#e53e3e;">*</span></label>
+        <textarea id="fbMessage" rows="4" placeholder="请详细描述您遇到的问题或改进建议…"></textarea>
+
+        <label for="fbContact">联系方式（选填）</label>
+        <input type="text" id="fbContact" placeholder="手机号 / 微信号 / 邮箱">
+
+        <div class="btn-group">
+            <button class="btn" id="fbSubmit">✅ 提交反馈</button>
+            <button class="btn btn-secondary" id="fbCopy">📋 复制内容</button>
+        </div>
+        <div style="margin-top:12px;font-size:13px;color:var(--text-light);">
+            💡 提交后数据保存在本地，您也可以复制后联系客服。
+        </div>
+    </div>
+</div>
+
+<!-- 临时 Toast 提示 -->
+<div class="feedback-toast" id="feedbackToast">✅ 感谢您的反馈！</div>
+
+<script>
+// ========== 所有原有 JavaScript 代码，完全未改动 ==========
+function R4(v){return Math.round(v*10000)/10000;}
+var EPS=0.000001;
+
+function Piece(w,h,origId,subIdx){
+    this.w=R4(w);this.h=R4(h);
+    this.origId=origId;this.subIdx=subIdx||0;
+    this.label = origId + (this.subIdx>0 ? '-' + this.subIdx : '');
+    this.canRotate=false;
+    this.placedW=0;this.placedH=0;this.x=0;this.y=0;
+}
+Piece.prototype.clone=function(){
+    var p=new Piece(this.w,this.h,this.origId,this.subIdx);
+    p.canRotate=this.canRotate;return p;
+};
+Piece.prototype.getOrientations=function(){
+    var o=[{w:this.w,h:this.h}];
+    if(this.canRotate&&Math.abs(this.w-this.h)>EPS)o.push({w:this.h,h:this.w});
+    return o;
+};
+
+function handleEnter(e, currentInput) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        var row = currentInput.closest('.rect-item');
+        if (!row) return;
+        var inputs = row.querySelectorAll('input');
+        var idx = Array.prototype.indexOf.call(inputs, currentInput);
+        if (idx < inputs.length - 1) {
+            inputs[idx + 1].focus();
+        } else {
+            addRect();
+            var allRows = document.querySelectorAll('#rectList .rect-item');
+            if (allRows.length > 0) {
+                var lastRow = allRows[allRows.length - 1];
+                var firstInput = lastRow.querySelector('input.rect-w');
+                if (firstInput) firstInput.focus();
+            }
+        }
+    }
+}
+
+function addRect(wVal, hVal, qtyVal){
+    var d = document.createElement('div');
+    d.className = 'rect-item';
+    d.innerHTML = '<input type="number" placeholder="宽(m)" class="rect-w" step="0.01" value="'+(wVal||'')+'" onkeydown="handleEnter(event, this)">'+
+                  '<input type="number" placeholder="长(m)" class="rect-h" step="0.01" value="'+(hVal||'')+'" onkeydown="handleEnter(event, this)">'+
+                  '<input type="number" placeholder="数量" class="rect-qty" value="'+(qtyVal||1)+'" min="1" onkeydown="handleEnter(event, this)">'+
+                  '<button class="remove-btn" onclick="removeRect(this)">✕ 删除</button>';
+    document.getElementById('rectList').appendChild(d);
+}
+function removeRect(b){b.parentElement.remove();}
+function clearAll(){
+    document.getElementById('rectList').innerHTML='';
+    document.getElementById('pasteInput').value='';
+    document.getElementById('resultCard').style.display='none';
+    document.getElementById('pasteFeedback').innerHTML='';
+    addRect('0.5','1.2','1');
+}
+
+function pasteRects(){
+    var text=document.getElementById('pasteInput').value.trim();
+    var fb = document.getElementById('pasteFeedback');
+    fb.innerHTML='';
+    if(!text){
+        fb.innerHTML='<span class="feedback warning">请先粘贴数据</span>';
+        return;
+    }
+    var lines=text.split(/[\n\r]+/);
+    var added=0, skipped=[];
+    for(var i=0;i<lines.length;i++){
+        var line=lines[i].trim();
+        if(!line)continue;
+        var parts=line.split(/[,\s\t]+/);
+        if(parts.length>=2){
+            var w=parseFloat(parts[0]);
+            var h=parseFloat(parts[1]);
+            var qty=parts.length>=3?parseInt(parts[2]):1;
+            if(!isNaN(w)&&!isNaN(h)&&!isNaN(qty)&&w>0&&h>0&&qty>0){
+                addRect(w,h,qty);
+                added++;
+            }else{
+                skipped.push('行'+(i+1)+'：「'+line+'」');
+            }
+        }else{
+            skipped.push('行'+(i+1)+'：「'+line+'」');
+        }
+    }
+    var msg='';
+    if(added>0){
+        msg='<span class="feedback success">✅ 成功添加 '+added+' 行工件</span>';
+        document.getElementById('pasteInput').value='';
+    }
+    if(skipped.length>0){
+        msg+='<span class="feedback warning" style="margin-left:10px;">⚠️ 跳过 '+skipped.length+' 行：'+skipped.join('；')+'</span>';
+    }
+    if(added===0 && skipped.length===0){
+        msg='<span class="feedback warning">未识别到有效数据</span>';
+    }
+    fb.innerHTML=msg;
+}
+
+function getInputRects(){
+    var items=document.querySelectorAll('#rectList .rect-item');
+    var list=[];
+    for(var i=0;i<items.length;i++){
+        var w=parseFloat(items[i].querySelector('.rect-w').value);
+        var h=parseFloat(items[i].querySelector('.rect-h').value);
+        var q=parseInt(items[i].querySelector('.rect-qty').value);
+        if(isNaN(w)||w<=0||isNaN(h)||h<=0||isNaN(q)||q<1)continue;
+        for(var j=0;j<q;j++)list.push({w:R4(w),h:R4(h)});
+    }
+    return list;
+}
+
+function splitWidth(w,h,X){
+    var parts=[],rem=R4(w);
+    while(rem>EPS){var pw=Math.min(rem,X);parts.push({w:R4(pw),h:R4(h)});rem=R4(rem-pw);}
+    return parts;
+}
+function preprocess(raw,X,isWood){
+    var pieces=[],id=1;
+    for(var i=0;i<raw.length;i++){
+        var w=raw[i].w, h=raw[i].h;
+        if(isWood){
+            if(w>X+EPS){
+                var subs=splitWidth(w,h,X);
+                for(var s=0;s<subs.length;s++){
+                    var pc=new Piece(subs[s].w,subs[s].h,id,s+1);
+                    pc.canRotate=false; pieces.push(pc);
+                }
+            }else{
+                var pc=new Piece(w,h,id,0); pc.canRotate=false; pieces.push(pc);
+            }
+            id++;
+        }else{
+            if(w <= X+EPS && h <= X+EPS){
+                var pc=new Piece(w,h,id,0); pc.canRotate=true; pieces.push(pc); id++;
+            }else if(w <= X+EPS && h > X+EPS){
+                var pc=new Piece(w,h,id,0); pc.canRotate=false; pieces.push(pc); id++;
+            }else if(w > X+EPS && h <= X+EPS){
+                var nw=h, nh=w;
+                var pc=new Piece(nw,nh,id,0); pc.canRotate=false; pieces.push(pc); id++;
+            }else if(w > X+EPS && h > X+EPS){
+                var nw, nh;
+                if(w > h){ nw = h; nh = w; }
+                else { nw = w; nh = h; }
+                var subs=splitWidth(nw,nh,X);
+                for(var s=0;s<subs.length;s++){
+                    var pc=new Piece(subs[s].w,subs[s].h,id,s+1);
+                    pc.canRotate = (subs[s].w <= X+EPS && subs[s].h <= X+EPS);
+                    pieces.push(pc);
+                }
+                id++;
+            }else{
+                var pc=new Piece(w,h,id,0); pc.canRotate=false; pieces.push(pc); id++;
+            }
+        }
+    }
+    return pieces;
+}
+
+function Skyline(W){
+    this.levels=[{x:0,y:0},{x:W,y:0}];
+    this.width=W;
+}
+Skyline.prototype.findLowestSlot=function(w,h){
+    var bestX=null,bestY=Infinity;
+    var pts=this.levels;
+    for(var i=0;i<pts.length-1;i++){
+        var xStart=pts[i].x;
+        var xEnd=R4(xStart+w);
+        if(xEnd>this.width+EPS)continue;
+        var maxY=0;
+        var j=i;
+        var curX=xStart;
+        while(curX<xEnd-EPS){
+            maxY=Math.max(maxY,pts[j].y);
+            if(j+1<pts.length&&pts[j+1].x<=xEnd+EPS){
+                curX=pts[j+1].x;
+                j++;
+            }else{curX=xEnd;}
+        }
+        if(maxY<bestY-EPS){bestY=maxY;bestX=xStart;}
+    }
+    if(bestX===null)return null;
+    return{x:R4(bestX),y:R4(bestY)};
+};
+Skyline.prototype.placeRect=function(x,y,w,h){
+    var newTop=R4(y+h),endX=R4(x+w);
+    var newLevels=[],i=0;
+    while(i<this.levels.length&&this.levels[i].x<x-EPS)newLevels.push({x:this.levels[i].x,y:this.levels[i].y}),i++;
+    var lastY=(newLevels.length>0)?newLevels[newLevels.length-1].y:0;
+    if(newLevels.length>0&&Math.abs(newLevels[newLevels.length-1].x-x)<EPS)newLevels[newLevels.length-1].y=Math.max(newLevels[newLevels.length-1].y,newTop);
+    else newLevels.push({x:x,y:newTop});
+    while(i<this.levels.length&&this.levels[i].x<endX-EPS){lastY=this.levels[i].y;i++;}
+    if(i<this.levels.length&&Math.abs(this.levels[i].x-endX)<EPS){newLevels.push({x:endX,y:Math.max(this.levels[i].y,lastY)});i++;}
+    else newLevels.push({x:endX,y:lastY});
+    while(i<this.levels.length)newLevels.push({x:this.levels[i].x,y:this.levels[i].y}),i++;
+    this.levels=newLevels;
+};
+
+function singlePack(pieces,W,sortFn){
+    var sorted=pieces.map(function(p){return p.clone();});
+    sorted.sort(sortFn);
+    var sky=new Skyline(W);
+    var layout=[];
+    for(var i=0;i<sorted.length;i++){
+        var piece=sorted[i];
+        var bestPlace=null,bestScore=Infinity;
+        var oris=piece.getOrientations();
+        for(var k=0;k<oris.length;k++){
+            var ori=oris[k];
+            if(ori.w>W+EPS)continue;
+            var slot=sky.findLowestSlot(ori.w,ori.h);
+            if(!slot)continue;
+            var score=slot.y*1000000 + slot.x*1000 + ori.h;
+            if(score<bestScore){bestScore=score;bestPlace={x:slot.x,y:slot.y,w:ori.w,h:ori.h};}
+        }
+        if(!bestPlace)return{layout:[],totalLen:Infinity};
+        piece.placedW=bestPlace.w;piece.placedH=bestPlace.h;
+        piece.x=bestPlace.x;piece.y=bestPlace.y;
+        layout.push(piece);
+        sky.placeRect(bestPlace.x,bestPlace.y,bestPlace.w,bestPlace.h);
+    }
+    return{layout:layout,totalLen:R4(Math.max.apply(null,layout.map(function(p){return p.y+p.placedH;})))};
+}
+function pack(pieces,W){
+    if(pieces.length===0)return{layout:[],totalLen:0};
+    var strategies=[
+        function(a,b){return b.w-a.w||b.h-a.h||(b.w*b.h-a.w*a.h);},
+        function(a,b){return b.h-a.h||b.w-a.w||(b.w*b.h-a.w*a.h);},
+        function(a,b){return(b.w*b.h)-(a.w*a.h)||b.w-a.w||b.h-a.h;},
+        function(a,b){return Math.max(b.w,b.h)-Math.max(a.w,a.h)||b.w-a.w;},
+        function(a,b){return(b.w+b.h)-(a.w+a.h)||b.w-a.w;},
+        function(a,b){return b.w-a.w||(b.w*b.h)-(a.w*a.h);}
+    ];
+    var best=null,bestLen=Infinity;
+    for(var s=0;s<strategies.length;s++){
+        var res=singlePack(pieces,W,strategies[s]);
+        if(res.totalLen<bestLen-EPS){bestLen=res.totalLen;best=res;}
+    }
+    return best||{layout:[],totalLen:Infinity};
+}
+
+var currentZoom = 1;
+var currentLayout = null;
+var currentW = 0;
+var currentTotalLen = 0;
+var selectedOrigId = null;
+var tooltip = document.getElementById('tooltip');
+var canvas = document.getElementById('layoutCanvas');
+
+function generateColorMap(layout){
+    var ids = [];
+    var map = {};
+    for(var i=0;i<layout.length;i++){
+        var oid = layout[i].origId;
+        if(!map[oid]){
+            ids.push(oid);
+            map[oid] = true;
+        }
+    }
+    var count = ids.length;
+    var colorMap = {};
+    for(var i=0;i<count;i++){
+        var hue = (i * 360 / count) % 360;
+        colorMap[ids[i]] = 'hsl('+hue+',70%,65%)';
+    }
+    return colorMap;
+}
+
+function drawCanvas(layout, W, totalLen, zoom){
+    zoom = zoom || 1;
+    currentZoom = zoom;
+    currentLayout = layout;
+    currentW = W;
+    currentTotalLen = totalLen;
+    var ctx = canvas.getContext('2d');
+    var scale = 100 * zoom;
+    var pad = 30;
+    canvas.width = Math.max(W * scale + pad * 2, 600);
+    canvas.height = Math.max(totalLen * scale + pad * 2, 300);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#f8fafc';
+    ctx.fillRect(pad, pad, W*scale, totalLen*scale);
+    var ends={};
+    for(var i=0;i<layout.length;i++) ends[R4(layout[i].y+layout[i].placedH).toFixed(4)]=true;
+    ctx.setLineDash([5,5]); ctx.strokeStyle='#cbd5e0'; ctx.lineWidth=1;
+    for(var k in ends){
+        var yPos=pad+parseFloat(k)*scale;
+        ctx.beginPath(); ctx.moveTo(pad,yPos); ctx.lineTo(pad+W*scale,yPos); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    ctx.strokeStyle='#a0aec0'; ctx.lineWidth=2;
+    ctx.strokeRect(pad,pad,W*scale,totalLen*scale);
+
+    var colorMap = generateColorMap(layout);
+    for(var i=0;i<layout.length;i++){
+        var p = layout[i];
+        var cx = pad + p.x * scale;
+        var cy = pad + p.y * scale;
+        var cw = p.placedW * scale;
+        var ch = p.placedH * scale;
+        ctx.fillStyle = colorMap[p.origId];
+        ctx.fillRect(cx, cy, cw, ch);
+        if(selectedOrigId !== null && p.origId === selectedOrigId){
+            ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
+        }else{
+            ctx.strokeStyle = '#2d3748'; ctx.lineWidth = 1.5;
+        }
+        ctx.strokeRect(cx, cy, cw, ch);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold '+(12*zoom)+'px "Inter"';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 2;
+        ctx.fillText(p.label, cx+4, cy+18*zoom);
+        ctx.shadowBlur = 0;
+        if(cw>50*zoom && ch>25*zoom){
+            ctx.fillStyle = '#2d3748'; ctx.font = (10*zoom)+'px "Inter"';
+            ctx.fillText(p.placedW.toFixed(2)+'×'+p.placedH.toFixed(2), cx+4, cy+32*zoom);
+        }
+    }
+}
+
+document.getElementById('zoomSlider').addEventListener('input', function(e){
+    var val = parseFloat(e.target.value);
+    document.getElementById('zoomValue').textContent = Math.round(val*100)+'%';
+    if(currentLayout){
+        drawCanvas(currentLayout, currentW, currentTotalLen, val);
+    }
+});
+
+canvas.addEventListener('mousemove', function(e){
+    if(!currentLayout) return;
+    var rect = canvas.getBoundingClientRect();
+    var scaleX = canvas.width / rect.width;
+    var scaleY = canvas.height / rect.height;
+    var mouseX = (e.clientX - rect.left) * scaleX;
+    var mouseY = (e.clientY - rect.top) * scaleY;
+    var pad = 30;
+    var layoutScale = 100 * currentZoom;
+    var found = null;
+    for(var i=0;i<currentLayout.length;i++){
+        var p = currentLayout[i];
+        var cx = pad + p.x * layoutScale;
+        var cy = pad + p.y * layoutScale;
+        var cw = p.placedW * layoutScale;
+        var ch = p.placedH * layoutScale;
+        if(mouseX >= cx && mouseX <= cx+cw && mouseY >= cy && mouseY <= cy+ch){
+            found = p;
+            break;
+        }
+    }
+    if(found){
+        tooltip.style.opacity = '1';
+        tooltip.style.left = (e.clientX - canvas.getBoundingClientRect().left + 15) + 'px';
+        tooltip.style.top = (e.clientY - canvas.getBoundingClientRect().top - 30) + 'px';
+        tooltip.textContent = found.label + ' | 原尺寸:'+found.w.toFixed(2)+'×'+found.h.toFixed(2)+' | 放置:'+found.placedW.toFixed(2)+'×'+found.placedH.toFixed(2);
+    }else{
+        tooltip.style.opacity = '0';
+    }
+});
+
+canvas.addEventListener('click', function(e){
+    if(!currentLayout) return;
+    var rect = canvas.getBoundingClientRect();
+    var scaleX = canvas.width / rect.width;
+    var scaleY = canvas.height / rect.height;
+    var mouseX = (e.clientX - rect.left) * scaleX;
+    var mouseY = (e.clientY - rect.top) * scaleY;
+    var pad = 30;
+    var layoutScale = 100 * currentZoom;
+    var found = null;
+    for(var i=0;i<currentLayout.length;i++){
+        var p = currentLayout[i];
+        var cx = pad + p.x * layoutScale;
+        var cy = pad + p.y * layoutScale;
+        var cw = p.placedW * layoutScale;
+        var ch = p.placedH * layoutScale;
+        if(mouseX >= cx && mouseX <= cx+cw && mouseY >= cy && mouseY <= cy+ch){
+            found = p;
+            break;
+        }
+    }
+    if(found){
+        if(selectedOrigId === found.origId){
+            selectedOrigId = null;
+        }else{
+            selectedOrigId = found.origId;
+        }
+        drawCanvas(currentLayout, currentW, currentTotalLen, currentZoom);
+    }else{
+        if(selectedOrigId !== null){
+            selectedOrigId = null;
+            drawCanvas(currentLayout, currentW, currentTotalLen, currentZoom);
+        }
+    }
+});
+
+function calculate(){
+    var X=R4(parseFloat(document.getElementById('stripWidth').value));
+    var rollMax=R4(parseFloat(document.getElementById('rollLength').value));
+    var isWood=document.getElementById('materialType').value==='wood';
+    if(X<=0||rollMax<=0){alert('幅宽和卷长必须大于0');return;}
+    var raw=getInputRects();
+    if(raw.length===0){alert('请至少添加一个有效工件');return;}
+    
+    var totalArea = 0;
+    for(var a=0; a<raw.length; a++){
+        totalArea += raw[a].w * raw[a].h;
+    }
+    
+    var pieces=preprocess(raw,X,isWood);
+    if(pieces.length===0){alert('没有可排样的工件');return;}
+    var res=pack(pieces,X);
+    if(res.layout.length===0){alert('排样失败，请检查尺寸');return;}
+    var totalLen=res.totalLen;
+    var usedArea = X * totalLen;
+    var utilization = (totalArea / usedArea * 100).toFixed(1);
+    
+    var sortedLayout=res.layout.slice().sort(function(a,b){return a.y-b.y;});
+    var rows=[],currentRow=null;
+    for(var i=0;i<sortedLayout.length;i++){
+        var p=sortedLayout[i];
+        var rowKey=R4(p.y).toFixed(4);
+        if(!currentRow||currentRow.y!==rowKey){
+            if(currentRow)rows.push(currentRow);
+            currentRow={y:rowKey,items:[],maxH:0};
+        }
+        currentRow.items.push(p);
+        currentRow.maxH=Math.max(currentRow.maxH,p.placedH);
+    }
+    if(currentRow)rows.push(currentRow);
+    
+    var over=totalLen>rollMax+EPS;
+    var rollCnt=over?Math.ceil(totalLen/rollMax):0;
+    var buyTotal=over?R4(rollCnt*rollMax):0;
+    var surplus=over?R4(buyTotal-totalLen):0;
+    
+    document.getElementById('summaryBar').innerHTML=
+        '<div class="summary-item"><div class="num">'+totalLen.toFixed(2)+'m</div><div class="label">理论最小长度</div></div>'+
+        '<div class="summary-item"><div class="num">'+utilization+'%</div><div class="label">材料利用率</div></div>'+
+        '<div class="summary-item"><div class="num">'+res.layout.length+'</div><div class="label">碎片总数</div></div>'+
+        (over?'<div class="summary-item"><div class="num">'+rollCnt+'</div><div class="label">需购卷数</div></div>':'')+
+        (over?'<div class="summary-item"><div class="num">'+buyTotal.toFixed(2)+'m</div><div class="label">总采购量</div></div>':'')+
+        (over?'<div class="summary-item"><div class="num">'+surplus.toFixed(2)+'m</div><div class="label">剩余</div></div>':'');
+        
+    var rpt='══════ 排样报告 ══════\n\n';
+    rpt+='材料：'+(isWood?'木纹（禁止旋转）':'纯色（可旋转/自动旋转优化）')+'\n';
+    rpt+='幅宽：'+X.toFixed(2)+'m  单卷最长：'+rollMax+'m\n';
+    rpt+='理论裁切总长：'+totalLen.toFixed(2)+'m\n';
+    rpt+='材料利用率：'+utilization+'%\n\n';
+    rpt+='──── 分段明细 ────\n';
+    for(var r=0;r<rows.length;r++){
+        var row=rows[r];
+        var ids='';
+        for(var j=0;j<row.items.length;j++){
+            var item=row.items[j];
+            ids+=item.label+'('+item.placedW.toFixed(2)+'×'+item.placedH.toFixed(2)+') ';
+        }
+        rpt+='段'+(r+1)+' 长'+row.maxH.toFixed(2)+'m：'+ids+'\n';
+    }
+    rpt+='\n──── 采购方案 ────\n';
+    if(over)rpt+='整卷购买：'+rollCnt+'卷×'+rollMax+'m='+buyTotal.toFixed(2)+'m（剩'+surplus.toFixed(2)+'m）\n';
+    else rpt+='不足一卷，直接零裁即可\n';
+    rpt+='零裁购买：买'+totalLen.toFixed(2)+'m\n';
+    document.getElementById('resultText').innerText=rpt;
+    document.getElementById('resultCard').style.display='block';
+    
+    selectedOrigId = null;
+    document.getElementById('zoomSlider').value = 1;
+    document.getElementById('zoomValue').textContent = '100%';
+    currentZoom = 1;
+    drawCanvas(res.layout, X, totalLen, 1);
+}
+
+window.onload = function(){ clearAll(); };
+
+// ========== 反馈功能（原有，未改动） ==========
+(function(){
+    const fab = document.getElementById('feedbackFab');
+    const overlay = document.getElementById('feedbackOverlay');
+    const closeBtn = document.getElementById('feedbackClose');
+    const submitBtn = document.getElementById('fbSubmit');
+    const copyBtn = document.getElementById('fbCopy');
+    const msgInput = document.getElementById('fbMessage');
+    const contactInput = document.getElementById('fbContact');
+    const toast = document.getElementById('feedbackToast');
+
+    function openModal(){
+        overlay.classList.add('active');
+    }
+    function closeModal(){
+        overlay.classList.remove('active');
+    }
+    function showToast(text){
+        toast.textContent = text;
+        toast.classList.add('show');
+        setTimeout(()=>{ toast.classList.remove('show'); }, 3000);
+    }
+
+    fab.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', function(e){
+        if(e.target === overlay) closeModal();
+    });
+
+    submitBtn.addEventListener('click', function(){
+        var msg = msgInput.value.trim();
+        if(!msg){
+            alert('请填写问题描述');
+            return;
+        }
+        var contact = contactInput.value.trim();
+        var feedbacks = JSON.parse(localStorage.getItem('feedbackList') || '[]');
+        feedbacks.push({
+            time: new Date().toLocaleString(),
+            message: msg,
+            contact: contact || '未留'
+        });
+        localStorage.setItem('feedbackList', JSON.stringify(feedbacks));
+        msgInput.value = '';
+        contactInput.value = '';
+        closeModal();
+        showToast('✅ 感谢您的反馈！我们会尽快处理。');
+    });
+
+    copyBtn.addEventListener('click', function(){
+        var msg = msgInput.value.trim();
+        var contact = contactInput.value.trim();
+        if(!msg){
+            alert('请填写问题描述后再复制');
+            return;
+        }
+        var text = '问题描述：' + msg + '\n联系方式：' + (contact || '未留') + '\n提交时间：' + new Date().toLocaleString();
+        navigator.clipboard.writeText(text).then(()=>{
+            showToast('📋 已复制反馈内容，可发送给客服');
+        }).catch(()=>{
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            ta.remove();
+            showToast('📋 已复制反馈内容');
+        });
+    });
+
+    document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape' && overlay.classList.contains('active')){
+            closeModal();
+        }
+    });
+})();
+</script>
+</body>
+</html>
